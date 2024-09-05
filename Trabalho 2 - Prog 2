@@ -1,0 +1,290 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+struct cliente {
+  char nome[30];
+  char sexo;
+  int idade;
+};
+typedef struct cliente cliente;
+
+struct venda {
+  cliente cliente;
+  int qtdItens;
+  int qtdSabores;
+  float valorTotal;
+};
+typedef struct venda venda;
+
+void verVenda();
+void verTodasVendas();
+void cadastrarVendas();
+
+int main(void) {
+
+  int op;
+
+  //1-
+  while (1) {
+
+    printf("\n=== Bem Vindo(a) a Sorveteria CLTLovers! ===\n\n");
+    printf("1- Cadastrar novas vendas\n");
+    printf("2- Pesquisar sobre uma venda usando nome do cliente\n");
+    printf("3- Ver informações de todas as vendas\n");
+    printf("4- Encerrar programa\n");
+    printf("O que deseja fazer? ");
+
+    scanf("%d", &op);
+
+    printf("\n");
+
+    switch (op) {
+    case 1:
+      cadastrarVendas();
+      break;
+    case 2:
+      verVenda();
+      break;
+    case 3:
+      verTodasVendas();
+      break;
+    case 4:
+      printf("Programa encerrado! Obrigado e volte sempre!");
+      exit(0);
+      break;
+    default:
+      printf("Erro. Tente novamente.\n\n");
+      break;
+    }
+  }
+
+  return 0;
+}
+
+//2 e 5- 
+void cadastrarVendas() {
+
+  int qtdVendas;
+
+  printf("Deseja cadastrar quantas vendas? ");
+  scanf("%d", &qtdVendas);
+
+  while (qtdVendas <= 0 || qtdVendas >= 'a' && qtdVendas <= 'z') {
+    printf("Impossivel efetuar 0 ou menos cadastros. Tente novamente: ");
+    scanf("%d", &qtdVendas);
+  }
+  venda *vendas = (venda *)malloc(qtdVendas * sizeof(venda));
+
+  for (int i = 0; i < qtdVendas; i++) {
+
+    printf("\nVenda nº%d", i + 1);
+    printf("\n\nNome do cliente: ");
+    scanf("%s", vendas[i].cliente.nome);
+
+    while (strlen(vendas[i].cliente.nome) < 3) {
+      printf("Nome deve possuir no mínimo 3 letras. Nome do cliente: ");
+      scanf("%s", vendas[i].cliente.nome);
+    }
+
+    printf("\nSexo (m, f, n): ");
+    scanf(" %c", &vendas[i].cliente.sexo);
+
+    while (vendas[i].cliente.sexo != 'm' && vendas[i].cliente.sexo != 'f' &&
+           vendas[i].cliente.sexo != 'n') {
+      printf("Sexo inválido. Escolha m, f ou n: ");
+      scanf(" %c", &vendas[i].cliente.sexo);
+    }
+
+    printf("\nIdade do cliente: ");
+    scanf("%d", &vendas[i].cliente.idade);
+
+    while (vendas[i].cliente.idade <= 0) {
+      printf("Idade inválida. Tente novamente: ");
+      scanf("%d", &vendas[i].cliente.idade);
+    }
+
+    printf("\nQuantos itens? ");
+    scanf("%d", &vendas[i].qtdItens);
+
+    while (vendas[i].qtdItens < 0) {
+      printf("Quantidade de itens inválida. Tente novamente: ");
+      scanf("%d", &vendas[i].qtdItens);
+    }
+
+    printf("\nQuantos sabores? ");
+    scanf("%d", &vendas[i].qtdSabores);
+
+    while (vendas[i].qtdSabores < 0) {
+      printf("Quantidade de sabore inválida. Tente novamente: ");
+      scanf("%d", &vendas[i].qtdSabores);
+    }
+
+    printf("\nValor total da compra: ");
+    scanf("%f", &vendas[i].valorTotal);
+
+    while (vendas[i].valorTotal < 0) {
+      printf("Valor total não pode ser negativa. Insira o valor novamente: ");
+      scanf("%f", &vendas[i].valorTotal);
+    }
+
+    printf("\n\nCadastro efetuado com sucesso!!\n");
+  }
+
+  FILE *reg = fopen("registros.txt", "a");
+
+  if (reg == NULL) {
+    printf("Impossivel abrir o arquivo.");
+    return;
+  }
+
+  for (int i = 0; i < qtdVendas; i++) {
+    fprintf(reg, "%s, %c, %d, %d, %d, %.2f\n", vendas[i].cliente.nome, vendas[i].cliente.sexo, vendas[i].cliente.idade, vendas[i].qtdItens, vendas[i].qtdSabores, vendas[i].valorTotal);
+  }
+  fclose(reg);
+
+  free(vendas);
+}
+
+//3-
+void verVenda() {
+
+  char nome[30];
+  char nomeDentro[30];
+  char sexo;
+  int idade;
+  int qtdItens;
+  int qtdSabores;
+  float valorTotal = 0;
+  float soma = 0;
+  float media = 0;
+  int cont = 0;
+
+  while (1) {
+    printf("\nDigite o nome do cliente que será pesquisado: ");
+    scanf("%s", nome);
+
+    FILE *reg = fopen("registros.txt", "r");
+
+    if (reg == NULL) {
+      printf("Erro ao abrir o arquivo.\n");
+      return;
+    }
+
+    int achou = 0;
+
+    while (fscanf(reg, "%[^,], %c, %d, %d, %d, %f\n", nomeDentro, &sexo, &idade, &qtdItens, &qtdSabores, &valorTotal) != EOF) {
+      if (strcmp(nomeDentro, nome) == 0) {
+        printf("Nome: %s\nSexo: %c\nIdade: %d\nQuantidade de itens: %d\nQuantidade de sabores: %d\nValor: %.2f\n", nomeDentro, sexo, idade, qtdItens, qtdSabores, valorTotal);
+        soma += valorTotal;
+        cont++;
+        achou = 1;
+      }
+    }
+    fclose(reg);
+
+    if (achou) {
+      media = soma / cont;
+      printf("Média do valor de todas as comprass: %.2f\n", media);
+    } else {
+      printf("O nome %s não foi encontrado no sistema\n", nome);
+    }
+  }
+}
+
+//4-
+void verTodasVendas() {
+  FILE *reg = fopen("registros.txt", "r");
+
+  if (reg == NULL) {
+    printf("Erro ao abrir o arquivo.\n");
+    return;
+  }
+
+  venda vendas[100];
+  int qtdVendas = 0;
+
+  while (fscanf(reg, "%[^,], %c, %d, %d, %d, %f\n",
+                vendas[qtdVendas].cliente.nome, &vendas[qtdVendas].cliente.sexo, &vendas[qtdVendas].cliente.idade, &vendas[qtdVendas].qtdItens, &vendas[qtdVendas].qtdSabores, &vendas[qtdVendas].valorTotal) != EOF) {
+    qtdVendas++;
+  }
+  fclose(reg);
+
+  float valorTotal = 0;
+  int totalItens = 0;
+  int totalSabores = 0;
+  int vendasComUmItem = 0;
+  int vendasSaboresPares = 0;
+  int compradoresMulheres = 0;
+  float valorTotalHomens = 0;
+  int clienteNomeMaior = 0;
+  char clienteMaiorNome[30] = "";
+  int idadeClienteMaisNovo = 1000;
+  char clienteMaisNovo[30] = "";
+
+  for (int i = 0; i < qtdVendas; i++) {
+    valorTotal += vendas[i].valorTotal;
+    totalItens += vendas[i].qtdItens;
+    totalSabores += vendas[i].qtdSabores;
+
+    if (vendas[i].qtdItens == 1) {
+      vendasComUmItem++;
+    }
+    if (vendas[i].qtdSabores % 2 == 0) {
+      vendasSaboresPares++;
+    }
+    if (vendas[i].cliente.sexo == 'f') {
+      compradoresMulheres++;
+    }
+    if (vendas[i].cliente.sexo == 'm') {
+      valorTotalHomens += vendas[i].valorTotal;
+    }
+
+    if (strlen(vendas[i].cliente.nome) > clienteNomeMaior) {
+      clienteNomeMaior = strlen(vendas[i].cliente.nome);
+      strcpy(clienteMaiorNome, vendas[i].cliente.nome);
+    }
+
+    if (vendas[i].cliente.idade < idadeClienteMaisNovo) {
+      idadeClienteMaisNovo = vendas[i].cliente.idade;
+      strcpy(clienteMaisNovo, vendas[i].cliente.nome);
+    }
+  }
+
+  printf("\n=== Informações de todas as vendas ===\n");
+  //Pedir um valor que será usado para exibir a quantidade de vendas abaixo deste valor.
+  printf("Quantidade de vendas com apenas 1 item: %d\n", vendasComUmItem);
+  printf("Quantidade de vendas com número par de sabores: %d\n", vendasSaboresPares);
+  printf("Quantidade total de compradores mulheres: %d\n", compradoresMulheres);
+  printf("Valor total comprado por homens: %.2f\n", valorTotalHomens);
+  printf("Quantidade total de itens vendidos: %d\n", totalItens);
+  printf("Número total de sabores vendidos: %d\n", totalSabores);
+  printf("Valor total das compras: %.2f\n", valorTotal);
+  if (qtdVendas > 0) {
+    printf("Valor médio de uma compra: %.2f\n", valorTotal / (float)qtdVendas);
+  } else {
+    printf("Nenhuma venda realizada\n");
+  }
+  printf("Cliente com o maior nome: %s\n", clienteMaiorNome);
+  printf("Cliente mais novo: %s, idade: %d\n", clienteMaisNovo, idadeClienteMaisNovo);
+}
+
+//======================================================================
+
+// void carregarVendas(venda vendas[], int *qtdVendas){
+
+//   FILE *arquivo = fopen("registros.txt", "r");
+
+//   if(arquivo == NULL){
+//         printf("Nenhuma venda registrada\n");
+//         return;
+//     }
+
+//     *qtdVendas = 0;
+//     while(fread(&vendas[*qtdVendas], sizeof(venda), 1, arquivo) == 1){
+//       (*qtdVendas)++;
+//     }
+
+//     fclose(arquivo);
+//     printf("Vendas carregadas.\n");
+// }
